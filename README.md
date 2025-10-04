@@ -62,9 +62,10 @@ Dikembangkan oleh **Abdur Rozak (SMKS YASMIDA Ambarawa)**.
 Setelah instalasi, lakukan konfigurasi Moodle via browser.
 
 Untuk keamanan, disarankan menambahkan:
-    - 🔒 HTTPS (gunakan certbot / Let's Encrypt)
-    - 🛡️ Firewall (UFW/iptables)
-    - ⚡ Tuning lebih lanjut MariaDB & PHP sesuai kebutuhan
+
+- 🔒 HTTPS (gunakan certbot / Let's Encrypt)
+- 🛡️ Firewall (UFW/iptables)
+- ⚡ Tuning lebih lanjut MariaDB & PHP sesuai kebutuhan
 
 ---
 
