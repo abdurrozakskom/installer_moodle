@@ -71,9 +71,10 @@ Untuk keamanan, disarankan menambahkan:
 
 ## 👨‍💻 Author
 
-    **Abdur Rozak**
-    **SMKS YASMIDA Ambarawa**
-    - 📌 GitHub: abdurrozakskom
+**Abdur Rozak**
+
+**SMKS YASMIDA Ambarawa**
+- 📌 GitHub: abdurrozakskom
 
 ---
 
