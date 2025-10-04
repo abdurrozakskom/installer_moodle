@@ -14,7 +14,7 @@ Dikembangkan oleh **Abdur Rozak (SMKS YASMIDA Ambarawa)**.
 - 📦 **Instalasi paket pendukung** (git, unzip, curl, dsb.).  
 - ⚙️ **Instalasi LAMP Stack** (Apache2, MariaDB, PHP-FPM dengan ekstensi Moodle).  
 - 🔧 **Tuning Apache2 & PHP-FPM** (memory_limit, upload_max_filesize, dll).  
-- 🗄️ **Setup Database MariaDB** (DB, user, password).  
+- 🗄️ **Setup Database & Tunning MariaDB** (DB, user, password).  
 - ⬇️ **Download Moodle via GitHub** (selalu update via `git pull`).  
 - 🌍 **Konfigurasi VirtualHost berbasis IP Address**.  
 - 📋 **Ringkasan instalasi** setelah selesai.
