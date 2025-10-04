@@ -67,15 +67,15 @@ if [[ "$CONFIRM" != "y" && "$CONFIRM" != "Y" ]]; then
 fi
 
 # ---- Update Sistem ----
-echo "[1/10] Update & upgrade paket..."
+echo "[1/11] Update & upgrade paket..."
 apt-get update -y && apt-get upgrade -y
 
 # ---- Paket Pendukung ----
-echo "[2/10] Install paket pendukung dasar..."
+echo "[2/11] Install paket pendukung dasar..."
 apt-get install -y curl wget unzip git ca-certificates gnupg lsb-release apt-transport-https software-properties-common
 
 # ---- Install LAMP Stack ----
-echo "[3/10] Menginstall Apache2, MariaDB, PHP-FPM dan modul PHP yang umum dibutuhkan Moodle..."
+echo "[3/11] Menginstall Apache2, MariaDB, PHP-FPM dan modul PHP yang umum dibutuhkan Moodle..."
 apt-get install -y apache2 mariadb-server libapache2-mod-fcgid php-fpm \
     php-cli php-xml php-intl php-mbstring php-zip php-curl php-gd php-xmlrpc php-soap php-mysql php-pear php-json php-bcmath php-opcache
 
@@ -83,7 +83,7 @@ a2enmod proxy_fcgi setenvif rewrite headers ssl expires mime
 systemctl restart apache2
 
 # ---- Tuning Apache2 ---
-echo "[4/10] Konfigurasi tuning Apache2 (keepalive, timeout, mpm)..."
+echo "[4/11] Konfigurasi tuning Apache2 (keepalive, timeout, mpm)..."
 APACHE_CONF="/etc/apache2/conf-available/moodle-tuning.conf"
 cat > "$APACHE_CONF" <<APC
 # Moodle tuning (basic)
@@ -97,7 +97,7 @@ APC
 ln -sf "$APACHE_CONF" /etc/apache2/conf-enabled/moodle-tuning.conf
 
 # ---- Tuning PHP-FPM ----
-echo "[5/10] Tuning PHP-FPM (php.ini & pool)..."
+echo "[5/11] Tuning PHP-FPM (php.ini & pool)..."
 PHPINI="/etc/php/$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')/fpm/php.ini"
 if [[ ! -f "$PHPINI" ]]; then
   PHPINI="/etc/php/8.1/fpm/php.ini" || true
@@ -123,14 +123,41 @@ fi
 systemctl restart php*-fpm || true
 
 # ---- Setup Database MariaDB ----
-echo "[6/10] Mengamankan MariaDB & membuat database Moodle..."
+echo "[6/11] Mengamankan MariaDB & membuat database Moodle..."
 mysql -e "CREATE DATABASE IF NOT EXISTS \\`$MYSQL_DB\\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 mysql -e "CREATE USER IF NOT EXISTS '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASS';"
 mysql -e "GRANT ALL PRIVILEGES ON \\`$MYSQL_DB\\`.* TO '$MYSQL_USER'@'localhost';"
 mysql -e "FLUSH PRIVILEGES;"
 
+# ---- Tuning MariaDB ----
+echo "[7/11] Tuning MariaDB..."
+MARIADB_CONF="/etc/mysql/mariadb.conf.d/50-server.cnf"
+
+# Backup konfigurasi default
+cp $MARIADB_CONF ${MARIADB_CONF}.bak
+
+cat >> $MARIADB_CONF <<EOF
+
+# =====================================
+# Custom MariaDB Optimized for Moodle
+# =====================================
+[mysqld]
+innodb_buffer_pool_size = 512M
+innodb_log_file_size    = 128M
+innodb_file_per_table   = 1
+innodb_flush_log_at_trx_commit = 2
+max_connections         = 200
+query_cache_type        = 1
+query_cache_size        = 64M
+tmp_table_size          = 64M
+max_heap_table_size     = 64M
+EOF
+
+systemctl restart mariadb
+echo "MariaDB telah dituning untuk performa Moodle"
+
 # ---- Download LMS Moodle dari GitHub ----
-echo "[7/10] Clone Moodle dari GitHub ke $WWWROOT ..."
+echo "[8/11] Clone Moodle dari GitHub ke $WWWROOT ..."
 rm -rf "$WWWROOT"
 mkdir -p "$WWWROOT"
 
@@ -149,7 +176,7 @@ chown -R www-data:www-data "$MOODLEDATA"
 chmod 0770 "$MOODLEDATA"
 
 # ---- VirtualHost ----
-echo "[8/10] Membuat VirtualHost Apache untuk $MOODLE_DOMAIN ..."
+echo "[9/11] Membuat VirtualHost Apache untuk $MOODLE_DOMAIN ..."
 APACHE_VHOST="/etc/apache2/sites-available/${MOODLE_DOMAIN}.conf"
 cat > "$APACHE_VHOST" <<VHOST
 <VirtualHost *:80>
@@ -175,14 +202,14 @@ a2ensite "${MOODLE_DOMAIN}.conf" || true
 systemctl reload apache2 || true
 
 # ---- Cron for Moodle ----
-echo "[9/10] Menambahkan cron job untuk Moodle (cron.php)"
+echo "[10/11] Menambahkan cron job untuk Moodle (cron.php)"
 CRONLINE="*/1 * * * * www-data /usr/bin/php ${WWWROOT}/admin/cron.php >/dev/null 2>&1"
 if ! crontab -u www-data -l 2>/dev/null | grep -F "${WWWROOT}/admin/cron.php" >/dev/null; then
   ( crontab -u www-data -l 2>/dev/null; echo "$CRONLINE" ) | crontab -u www-data -
 fi
 
 # ---- Summary ----
-echo "[10/10] Selesai — ringkasan tindakan:"
+echo "[11/11] Selesai — ringkasan tindakan:"
 echo "  - Web root      : $WWWROOT"
 echo "  - moodledata    : $MOODLEDATA"
 echo "  - Database      : $MYSQL_DB (user: $MYSQL_USER)"

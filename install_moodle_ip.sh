@@ -48,28 +48,28 @@ read -s -p "Masukkan password database: " DBPASS
 echo
 
 # ---- Update Sistem ----
-echo "[1/9] Update & Upgrade..."
+echo "[1/10] Update & Upgrade..."
 apt update && apt upgrade -y
 
 # ---- Paket Pendukung ----
-echo "[2/9] Install paket pendukung..."
+echo "[2/10] Install paket pendukung..."
 apt install -y unzip curl git software-properties-common
 
 # ---- Install LAMP Stack ----
-echo "[3/9] Install Apache, MariaDB, PHP..."
+echo "[3/10] Install Apache, MariaDB, PHP..."
 apt install -y apache2 mariadb-server mariadb-client
 add-apt-repository ppa:ondrej/php -y
 apt update
 apt install -y php php-cli php-fpm php-mysql php-xmlrpc php-curl php-gd php-intl php-mbstring php-xml php-zip graphviz aspell ghostscript
 
 # ---- Tuning Apache2 ----
-echo "[4/9] Tuning Apache2..."
+echo "[4/10] Tuning Apache2..."
 a2enmod proxy_fcgi setenvif rewrite
 a2enconf php*-fpm
 systemctl restart apache2
 
 # ---- Tuning PHP-FPM ----
-echo "[5/9] Tuning PHP-FPM..."
+echo "[5/10] Tuning PHP-FPM..."
 PHPVER=$(php -v | head -n 1 | cut -d" " -f2 | cut -d"." -f1,2)
 PHPCONF="/etc/php/$PHPVER/fpm/php.ini"
 sed -i "s/memory_limit = .*/memory_limit = 512M/" $PHPCONF
@@ -78,14 +78,41 @@ sed -i "s/post_max_size = .*/post_max_size = 100M/" $PHPCONF
 systemctl restart php$PHPVER-fpm
 
 # ---- Setup Database MariaDB ----
-echo "[6/9] Setup Database..."
+echo "[6/10] Setup Database..."
 mysql -e "CREATE DATABASE $DBNAME DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 mysql -e "CREATE USER '$DBUSER'@'localhost' IDENTIFIED BY '$DBPASS';"
 mysql -e "GRANT ALL PRIVILEGES ON $DBNAME.* TO '$DBUSER'@'localhost';"
 mysql -e "FLUSH PRIVILEGES;"
 
+# ---- Tuning MariaDB ----
+echo "[7/10] Tuning MariaDB..."
+MARIADB_CONF="/etc/mysql/mariadb.conf.d/50-server.cnf"
+
+# Backup konfigurasi default
+cp $MARIADB_CONF ${MARIADB_CONF}.bak
+
+cat >> $MARIADB_CONF <<EOF
+
+# =====================================
+# Custom MariaDB Optimized for Moodle
+# =====================================
+[mysqld]
+innodb_buffer_pool_size = 512M
+innodb_log_file_size    = 128M
+innodb_file_per_table   = 1
+innodb_flush_log_at_trx_commit = 2
+max_connections         = 200
+query_cache_type        = 1
+query_cache_size        = 64M
+tmp_table_size          = 64M
+max_heap_table_size     = 64M
+EOF
+
+systemctl restart mariadb
+echo "MariaDB telah dituning untuk performa Moodle"
+
 # ---- Download LMS Moodle via GitHub ----
-echo "[7/9] Download Moodle dari GitHub..."
+echo "[8/10] Download Moodle dari GitHub..."
 if [ ! -d "$WEBROOT" ]; then
   git clone https://github.com/moodle/moodle.git $WEBROOT
 else
@@ -95,7 +122,7 @@ chown -R www-data:www-data $WEBROOT
 chmod -R 755 $WEBROOT
 
 # ---- VirtualHost ----
-echo "[8/9] Konfigurasi VirtualHost..."
+echo "[9/10] Konfigurasi VirtualHost..."
 VHOST="/etc/apache2/sites-available/moodle.conf"
 cat > $VHOST <<EOF
 <VirtualHost *:80>
@@ -119,7 +146,7 @@ a2dissite 000-default.conf
 systemctl reload apache2
 
 # ---- Summary ----
-echo "[9/9] Instalasi selesai"
+echo "[10/10] Instalasi selesai"
 echo "============================================="
 echo " Moodle berhasil diinstal."
 echo " Akses di: http://$SERVER_IP "
