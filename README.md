@@ -1,4 +1,7 @@
 # 🚀 Auto Installer LMS Moodle on LAMP Stack (Ubuntu Server)
+<p align="center"><img src="https://tjkt.smkyasmida.sch.id/wp-content/uploads/2025/02/Logo-TJKT-2022-Sampul-Youtube-1.png" width="600"></p>
+
+---
 
 Script otomatis untuk instalasi dan konfigurasi **LMS Moodle** di atas **LAMP Stack (Linux, Apache2, MariaDB, PHP-FPM)** pada **Ubuntu Server**.  
 Dikembangkan oleh **Abdur Rozak (SMKS YASMIDA Ambarawa)**.
