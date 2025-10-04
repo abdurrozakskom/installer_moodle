@@ -5,7 +5,7 @@ Dikembangkan oleh **Abdur Rozak (SMKS YASMIDA Ambarawa)**.
 
 ---
 
-## ✨ Fitur
+## ✨ Fitur Bash
 - 🔑 **Cek Root** → hanya bisa dijalankan sebagai root (sudo).  
 - 📝 **Logging** → seluruh proses tercatat di `/var/log/moodle_installer.log`.  
 - 🔐 **Verifikasi Password** sebelum instalasi.  
