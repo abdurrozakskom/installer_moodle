@@ -55,19 +55,20 @@ Dikembangkan oleh **Abdur Rozak (SMKS YASMIDA Ambarawa)**.
    ```bash
     http://<IP-SERVER>
     ```
-📑 **Catatan Tambahan**
+## 📑 **Catatan Tambahan**
 Setelah instalasi, lakukan konfigurasi Moodle via browser.
 
 Untuk keamanan, disarankan menambahkan:
     - 🔒 HTTPS (gunakan certbot / Let's Encrypt)
     - 🛡️ Firewall (UFW/iptables)
-     -    - ⚡ Tuning lebih lanjut MariaDB & PHP sesuai kebutuhan
-👨‍💻 Author
+    - ⚡ Tuning lebih lanjut MariaDB & PHP sesuai kebutuhan
 
-**Abdur Rozak**
-**SMKS YASMIDA Ambarawa**
+## 👨‍💻 Author
+
+    **Abdur Rozak**
+    **SMKS YASMIDA Ambarawa**
     - 📌 GitHub: abdurrozakskom
 
-📜 Lisensi
+## 📜 Lisensi
 Script ini dirilis dengan lisensi MIT License.
 Silakan gunakan, modifikasi, dan distribusikan sesuai kebutuhan.
