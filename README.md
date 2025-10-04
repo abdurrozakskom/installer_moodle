@@ -55,6 +55,9 @@ Dikembangkan oleh **Abdur Rozak (SMKS YASMIDA Ambarawa)**.
    ```bash
     http://<IP-SERVER>
     ```
+
+---
+
 ## 📑 **Catatan Tambahan**
 Setelah instalasi, lakukan konfigurasi Moodle via browser.
 
@@ -63,11 +66,15 @@ Untuk keamanan, disarankan menambahkan:
     - 🛡️ Firewall (UFW/iptables)
     - ⚡ Tuning lebih lanjut MariaDB & PHP sesuai kebutuhan
 
+---
+
 ## 👨‍💻 Author
 
     **Abdur Rozak**
     **SMKS YASMIDA Ambarawa**
     - 📌 GitHub: abdurrozakskom
+
+---
 
 ## 📜 Lisensi
 Script ini dirilis dengan lisensi MIT License.
