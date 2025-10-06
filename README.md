@@ -69,29 +69,36 @@ Setiap donasi sangat membantu untuk pengembangan fitur baru dan pemeliharaan scr
 ---
 
 ## 🔧 Cara Menggunakan
-1. **Clone repo ini**:
+1. **Edit Repository**:
+
+2. **Update** :
+   ```bash
+   apt update
+   apt update --fix-missing
+   ```
+3. **Clone repo ini**:
    ```bash
    apt install git
    git clone https://github.com/abdurrozakskom/installer_moodle.git
    cd installer_moodle
     ```
-2. **Beri izin eksekusi**:
+4. **Beri izin eksekusi**:
    ```bash
     chmod +x install_moodle.sh
     chmod +x install_moodle_ip.sh
     ```
-3. **Jalankan script**:
+5. **Jalankan script**:
    ```bash
     sudo ./install_moodle.sh
     sudo ./install_moodle_ip.sh
     ```
-4. **Ikuti prompt**:
+6. **Ikuti prompt**:
     - Konfirmasi password instalasi.
     - Pilih IP otomatis atau masukkan manual.
     - Tentukan direktori webroot **Wajib**.
     - Masukkan nama DB, user DB, dan password DB
 
-5. **Akses di Browser**:
+7. **Akses di Browser**:
    ```bash
     http://<IP-SERVER>
     ```
