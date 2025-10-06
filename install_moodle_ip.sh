@@ -25,10 +25,7 @@ RED="\e[31m"
 BLUE="\e[34m"
 CYAN="\e[36m"
 RESET="\e[0m"
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-RESET='\033[0m'
+
 
 
 # ---- Pastikan root atau verifikasi sudo ----
@@ -253,17 +250,31 @@ echo "🔄 Reload Apache service..."
 systemctl reload apache2 || systemctl restart apache2
 
 
+ChatGPT said:
+
+Siap, Pak Rozak 💪
+Berikut versi summary lengkap + spesifikasi + paket yang terinstall, sudah saya sesuaikan dengan kode warna yang Bapak minta:
+
+✅ Potongan Script (bisa ditempatkan di bagian akhir install_moodle_lamp.sh)
+# ===== Warna =====
+GREEN="\e[32m"
+YELLOW="\e[33m"
+RED="\e[31m"
+BLUE="\e[34m"
+CYAN="\e[36m"
+RESET="\e[0m"
+
 # ---- Summary ----
 echo ""
-echo "============================================="
+echo -e "${GREEN}==========================================${RESET}"
 echo -e "🎉 ${GREEN}Instalasi Moodle Berhasil!${RESET}"
-echo "============================================="
+echo -e "${GREEN}==========================================${RESET}"
 
 # Deteksi IP server
 SERVER_IP=$(hostname -I | awk '{print $1}')
 
-# Tampilkan link akses (klikable jika terminal mendukung)
-echo -e "🌐 Akses Moodle di: \e]8;;http://$SERVER_IP/\ahttp://$SERVER_IP/\e]8;;\a"
+# Tampilkan link akses (klikable di terminal modern)
+echo -e "🌐 Akses Moodle di: \e]8;;http://$SERVER_IP/\a${CYAN}http://$SERVER_IP/${RESET}\e]8;;\a"
 
 # Informasi Database & File
 echo -e "🗄️  Database : ${YELLOW}$DBNAME${RESET}"
@@ -272,24 +283,24 @@ echo -e "📂 Webroot  : ${YELLOW}$WEBROOT${RESET}"
 echo -e "🪵 Log File : ${YELLOW}$LOGFILE${RESET}"
 
 echo ""
-echo "============================================="
-echo -e "🧠 ${CYAN}Spesifikasi Server${RESET}"
-echo "============================================="
+echo -e "${GREEN}==========================================${RESET}"
+echo -e "🧠 ${BLUE}Spesifikasi Server${RESET}"
+echo -e "${GREEN}==========================================${RESET}"
 CPU_MODEL=$(lscpu | grep "Model name" | sed 's/Model name:\s*//')
 CPU_CORES=$(nproc)
 TOTAL_RAM=$(free -h | awk '/^Mem:/{print $2}')
 DISK_SIZE=$(df -h / | awk 'NR==2 {print $2}')
 OS_NAME=$(lsb_release -ds 2>/dev/null || cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '"')
 
-echo -e "🖥️  OS         : ${YELLOW}$OS_NAME${RESET}"
-echo -e "⚙️  CPU        : ${YELLOW}$CPU_MODEL ($CPU_CORES core)${RESET}"
-echo -e "💾 RAM        : ${YELLOW}$TOTAL_RAM${RESET}"
-echo -e "📀 Storage    : ${YELLOW}$DISK_SIZE${RESET}"
+echo -e "🖥️  OS         : ${CYAN}$OS_NAME${RESET}"
+echo -e "⚙️  CPU        : ${CYAN}$CPU_MODEL ($CPU_CORES core)${RESET}"
+echo -e "💾 RAM        : ${CYAN}$TOTAL_RAM${RESET}"
+echo -e "📀 Storage    : ${CYAN}$DISK_SIZE${RESET}"
 
 echo ""
-echo "============================================="
-echo -e "📦 ${CYAN}Paket yang Terinstall${RESET}"
-echo "============================================="
+echo -e "${GREEN}==========================================${RESET}"
+echo -e "📦 ${BLUE}Paket yang Terinstall${RESET}"
+echo -e "${GREEN}==========================================${RESET}"
 echo -e "🧩 Apache2   ${GREEN}✔${RESET}"
 echo -e "🧩 MariaDB   ${GREEN}✔${RESET}"
 echo -e "🧩 PHP-FPM   ${GREEN}✔${RESET}"
@@ -297,19 +308,21 @@ echo -e "🧩 Moodle    ${GREEN}✔${RESET}"
 echo -e "🧩 Git, Curl, Zip, Unzip, UFW, dll ${GREEN}✔${RESET}"
 
 echo ""
-echo "============================================="
-echo -e "🚀 ${CYAN}Instalasi Selesai!${RESET}"
-echo "Silakan buka Moodle Anda di browser:"
+echo -e "${GREEN}==========================================${RESET}"
+echo -e "🚀 ${BLUE}Instalasi Selesai!${RESET}"
+echo -e "${GREEN}==========================================${RESET}"
+echo -e "Silakan buka Moodle Anda di browser:"
 echo -e "➡️  ${YELLOW}http://$SERVER_IP/${RESET}"
 echo ""
-echo "Untuk keamanan disarankan:"
-echo "🔒 Aktifkan HTTPS (Let's Encrypt / Certbot)"
-echo "🛡️  Konfigurasi Firewall (UFW)"
-echo "⚡ Tuning tambahan PHP dan MariaDB jika dibutuhkan"
-echo "============================================="
+echo -e "${RED}Untuk keamanan disarankan:${RESET}"
+echo -e "🔒 Aktifkan HTTPS (Let's Encrypt / Certbot)"
+echo -e "🛡️  Konfigurasi Firewall (UFW)"
+echo -e "⚡ Tuning tambahan PHP dan MariaDB jika dibutuhkan"
+echo -e "${GREEN}==========================================${RESET}"
 
 
 # ---- Credit Author ----
+echo -e "${GREEN}==========================================${RESET}"
 echo -e "${CYAN}📌 Credit Author:${RESET}"
 echo -e "${YELLOW}Abdur Rozak, SMKS YASMIDA Ambarawa${RESET}"
 echo -e "${YELLOW}GitHub : \e]8;;https://github.com/abdurrozakskom\ahttps://github.com/abdurrozakskom\e]8;;\a${RESET}"
