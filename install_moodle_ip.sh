@@ -26,36 +26,35 @@ BLUE="\e[34m"
 CYAN="\e[36m"
 RESET="\e[0m"
 
-# ---- Pastikan root ----
+# ---- Pastikan root atau verifikasi sudo ----
+echo -e "${GREEN}==========================================${RESET}"
+echo "🔐 Verifikasi Hak Akses Root"
+echo -e "${GREEN}==========================================${RESET}"
+
 if [ "$(id -u)" -ne 0 ]; then
-  echo "Harus dijalankan sebagai root" >&2
-  exit 1
+    echo "⚠️  Script ini memerlukan hak akses root."
+    echo "Silakan masukkan password sudo Anda untuk melanjutkan..."
+    sudo -v
+    if [ $? -ne 0 ]; then
+        echo "❌ Verifikasi sudo gagal. Instalasi dibatalkan."
+        exit 1
+    else
+        echo "✅ Verifikasi sudo berhasil. Melanjutkan instalasi..."
+    fi
+else
+    echo "✅ Anda sudah login sebagai root. Melanjutkan instalasi..."
 fi
 
 # ---- Logging ----
 LOGFILE="/var/log/moodle_installer.log"
 echo -e "${GREEN}==========================================${RESET}"
-echo "Log akan disimpan di $LOGFILE"
+echo "📜 Log akan disimpan di $LOGFILE"
 echo -e "${GREEN}==========================================${RESET}"
 exec > >(tee -a $LOGFILE) 2>&1
 
-# ---- Konfirmasi Sebelum Instalasi ----
-echo -e "${GREEN}==========================================${RESET}"
-echo "=== Verifikasi Sebelum Instalasi ==="
-echo -n "Masukkan password untuk konfirmasi (bebas): "
-read -s password1
-echo
-echo -n "Masukkan ulang password: "
-read -s password2
-echo
 
-if [ "$password1" != "$password2" ]; then
-    echo "❌ Password tidak cocok. Instalasi dibatalkan."
-    exit 1
-else
-    echo "✅ Konfirmasi berhasil. Melanjutkan instalasi..."
-fi
-echo -e "${GREEN}==========================================${RESET}"
+# Perpanjang sesi sudo selama instalasi
+( while true; do sudo -v; sleep 60; done ) &
 
 
 # ---- Input User ----
