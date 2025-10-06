@@ -249,17 +249,61 @@ systemctl reload apache2 || systemctl restart apache2
 
 
 # ---- Summary ----
-echo "[10/10] Instalasi selesai"
-echo -e "${GREEN}==========================================${RESET}"
-echo " Moodle berhasil diinstal."
-echo " Akses di: http://$SERVER_IP "
-echo " Database: $DBNAME"
-echo " DB User : $DBUSER"
-echo " Webroot : $WEBROOT"
-echo " Log file: $LOGFILE"
-echo -e "${GREEN}==========================================${RESET}"
 echo ""
-echo -e "${GREEN}==========================================${RESET}"
+echo "============================================="
+echo -e "🎉 ${GREEN}Instalasi Moodle Berhasil!${RESET}"
+echo "============================================="
+
+# Deteksi IP server
+SERVER_IP=$(hostname -I | awk '{print $1}')
+
+# Tampilkan link akses (klikable jika terminal mendukung)
+echo -e "🌐 Akses Moodle di: \e]8;;http://$SERVER_IP/\ahttp://$SERVER_IP/\e]8;;\a"
+
+# Informasi Database & File
+echo -e "🗄️  Database : ${YELLOW}$DBNAME${RESET}"
+echo -e "👤 DB User  : ${YELLOW}$DBUSER${RESET}"
+echo -e "📂 Webroot  : ${YELLOW}$WEBROOT${RESET}"
+echo -e "🪵 Log File : ${YELLOW}$LOGFILE${RESET}"
+
+echo ""
+echo "============================================="
+echo -e "🧠 ${CYAN}Spesifikasi Server${RESET}"
+echo "============================================="
+CPU_MODEL=$(lscpu | grep "Model name" | sed 's/Model name:\s*//')
+CPU_CORES=$(nproc)
+TOTAL_RAM=$(free -h | awk '/^Mem:/{print $2}')
+DISK_SIZE=$(df -h / | awk 'NR==2 {print $2}')
+OS_NAME=$(lsb_release -ds 2>/dev/null || cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '"')
+
+echo -e "🖥️  OS         : ${YELLOW}$OS_NAME${RESET}"
+echo -e "⚙️  CPU        : ${YELLOW}$CPU_MODEL ($CPU_CORES core)${RESET}"
+echo -e "💾 RAM        : ${YELLOW}$TOTAL_RAM${RESET}"
+echo -e "📀 Storage    : ${YELLOW}$DISK_SIZE${RESET}"
+
+echo ""
+echo "============================================="
+echo -e "📦 ${CYAN}Paket yang Terinstall${RESET}"
+echo "============================================="
+echo -e "🧩 Apache2   ${GREEN}✔${RESET}"
+echo -e "🧩 MariaDB   ${GREEN}✔${RESET}"
+echo -e "🧩 PHP-FPM   ${GREEN}✔${RESET}"
+echo -e "🧩 Moodle    ${GREEN}✔${RESET}"
+echo -e "🧩 Git, Curl, Zip, Unzip, UFW, dll ${GREEN}✔${RESET}"
+
+echo ""
+echo "============================================="
+echo -e "🚀 ${CYAN}Instalasi Selesai!${RESET}"
+echo "Silakan buka Moodle Anda di browser:"
+echo -e "➡️  ${YELLOW}http://$SERVER_IP/${RESET}"
+echo ""
+echo "Untuk keamanan disarankan:"
+echo "🔒 Aktifkan HTTPS (Let's Encrypt / Certbot)"
+echo "🛡️  Konfigurasi Firewall (UFW)"
+echo "⚡ Tuning tambahan PHP dan MariaDB jika dibutuhkan"
+echo "============================================="
+
+
 # ---- Credit Author ----
 echo -e "${CYAN}📌 Credit Author:${RESET}"
 echo -e "${YELLOW}Abdur Rozak, SMKS YASMIDA Ambarawa${RESET}"
@@ -281,3 +325,4 @@ echo -e "${YELLOW}• Facebook  : \e]8;;https://facebook.com/abdurrozak.skom\aht
 echo -e "${YELLOW}• TikTok    : \e]8;;https://tiktok.com/abdurrozak.skom\ahttps://tiktok.com/abdurrozak.skom\e]8;;\a${RESET}"
 echo -e "${YELLOW}• Threads   : \e]8;;https://threads.com/@abdurrozak.skom\ahttps://threads.com/@abdurrozak.skom\e]8;;\a${RESET}"
 echo -e "${YELLOW}• YouTube   : \e]8;;https://www.youtube.com/@AbdurRozakSKom\ahttps://www.youtube.com/@AbdurRozakSKom\e]8;;\a${RESET}"
+echo -e "${GREEN}==========================================${RESET}"
