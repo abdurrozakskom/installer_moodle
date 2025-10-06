@@ -54,11 +54,6 @@ echo "📜 Log akan disimpan di $LOGFILE"
 echo -e "${GREEN}==========================================${RESET}"
 exec > >(tee -a $LOGFILE) 2>&1
 
-
-# Perpanjang sesi sudo selama instalasi
-( while true; do sudo -v; sleep 60; done ) &
-
-
 # ---- Input User ----
 SERVER_IP=$(hostname -I | awk '{print $1}')
 echo -e "${GREEN}==========================================${RESET}"
