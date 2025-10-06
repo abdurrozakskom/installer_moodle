@@ -250,20 +250,6 @@ echo "🔄 Reload Apache service..."
 systemctl reload apache2 || systemctl restart apache2
 
 
-ChatGPT said:
-
-Siap, Pak Rozak 💪
-Berikut versi summary lengkap + spesifikasi + paket yang terinstall, sudah saya sesuaikan dengan kode warna yang Bapak minta:
-
-✅ Potongan Script (bisa ditempatkan di bagian akhir install_moodle_lamp.sh)
-# ===== Warna =====
-GREEN="\e[32m"
-YELLOW="\e[33m"
-RED="\e[31m"
-BLUE="\e[34m"
-CYAN="\e[36m"
-RESET="\e[0m"
-
 # ---- Summary ----
 echo ""
 echo -e "${GREEN}==========================================${RESET}"
@@ -299,13 +285,28 @@ echo -e "📀 Storage    : ${CYAN}$DISK_SIZE${RESET}"
 
 echo ""
 echo -e "${GREEN}==========================================${RESET}"
-echo -e "📦 ${BLUE}Paket yang Terinstall${RESET}"
+echo -e "📦 ${BLUE}Paket dan Versi Terinstall${RESET}"
 echo -e "${GREEN}==========================================${RESET}"
-echo -e "🧩 Apache2   ${GREEN}✔${RESET}"
-echo -e "🧩 MariaDB   ${GREEN}✔${RESET}"
-echo -e "🧩 PHP-FPM   ${GREEN}✔${RESET}"
-echo -e "🧩 Moodle    ${GREEN}✔${RESET}"
-echo -e "🧩 Git, Curl, Zip, Unzip, UFW, dll ${GREEN}✔${RESET}"
+
+# Ambil versi setiap paket
+APACHE_VERSION=$(apache2 -v | grep "Server version" | awk '{print $3}' | cut -d'/' -f2)
+MARIADB_VERSION=$(mariadb --version | awk '{print $5}' | cut -d'-' -f1)
+PHP_VERSION=$(php -v | head -n 1 | awk '{print $2}')
+MOODLE_VERSION=$(grep "\$release" $WEBROOT/version.php | cut -d"'" -f2)
+GIT_VERSION=$(git --version | awk '{print $3}')
+CURL_VERSION=$(curl --version | head -n1 | awk '{print $2}')
+ZIP_VERSION=$(zip -v | head -n1 | awk '{print $2}')
+UNZIP_VERSION=$(unzip -v | head -n1 | awk '{print $2}')
+UFW_STATUS=$(ufw status | head -n1)
+
+echo -e "🧩 Apache2   : ${GREEN}v$APACHE_VERSION${RESET}"
+echo -e "🧩 MariaDB   : ${GREEN}v$MARIADB_VERSION${RESET}"
+echo -e "🧩 PHP-FPM   : ${GREEN}v$PHP_VERSION${RESET}"
+echo -e "🧩 Moodle    : ${GREEN}$MOODLE_VERSION${RESET}"
+echo -e "🧩 Git       : ${GREEN}v$GIT_VERSION${RESET}"
+echo -e "🧩 Curl      : ${GREEN}v$CURL_VERSION${RESET}"
+echo -e "🧩 Zip/Unzip : ${GREEN}v$ZIP_VERSION / v$UNZIP_VERSION${RESET}"
+echo -e "🧩 Firewall  : ${GREEN}$UFW_STATUS${RESET}"
 
 echo ""
 echo -e "${GREEN}==========================================${RESET}"
