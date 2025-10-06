@@ -37,22 +37,26 @@ LOGFILE="/var/log/moodle_installer.log"
 echo "Log akan disimpan di $LOGFILE"
 exec > >(tee -a $LOGFILE) 2>&1
 
-# ---- Verifikasi Password Sebelum Instalasi ---
-echo -n "Masukkan password untuk konfirmasi instalasi: "
-read -s password1
+# ---- Verifikasi Password Sebelum Instalasi ----
+echo "=== Verifikasi Password Root ==="
+echo -n "Masukkan password root untuk melanjutkan instalasi: "
+read -s ROOT_PASS
 echo
 
-echo -n "Masukkan ulang password: "
-read -s password2
-echo
+# Verifikasi password root
+echo "$ROOT_PASS" | sudo -S true 2>/dev/null
 
-if [ "$password1" != "$password2" ]; then
-  echo "Password tidak cocok. Keluar."
-  exit 1
+if [ $? -ne 0 ]; then
+    echo "❌ Password root salah. Instalasi dibatalkan."
+    exit 1
+else
+    echo "✅ Password root benar. Melanjutkan instalasi..."
 fi
+
 
 # ---- Input User ----
 SERVER_IP=$(hostname -I | awk '{print $1}')
+echo -e "${GREEN}==========================================${RESET}"
 echo "IP Server terdeteksi: $SERVER_IP"
 echo -n "Gunakan IP ini? [Y/n]: "
 read use_detected_ip
@@ -64,6 +68,7 @@ read -p "Masukkan direktori web root (misalnya /var/www/moodle): " WEBROOT
 read -p "Masukkan nama database: " DBNAME
 read -p "Masukkan user database: " DBUSER
 read -s -p "Masukkan password database: " DBPASS
+echo -e "${GREEN}==========================================${RESET}"
 echo
 
 # ---- Update Sistem ----
