@@ -34,25 +34,29 @@ fi
 
 # ---- Logging ----
 LOGFILE="/var/log/moodle_installer.log"
+echo "=========================================="
 echo "Log akan disimpan di $LOGFILE"
+echo "=========================================="
 exec > >(tee -a $LOGFILE) 2>&1
 
-# ---- Verifikasi Password Sebelum Instalasi ---
-echo -e "${GREEN}==========================================${RESET}"-
-echo "=== Verifikasi Password Root ==="
-echo -n "Masukkan password root untuk melanjutkan instalasi: "
-read -s ROOT_PASS
+# ---- Konfirmasi Sebelum Instalasi ----
+echo "=========================================="
+echo "=== Verifikasi Sebelum Instalasi ==="
+echo -n "Masukkan password untuk konfirmasi (bebas): "
+read -s password1
 echo
-echo -e "${GREEN}==========================================${RESET}"
-# Verifikasi password root
-echo "$ROOT_PASS" | sudo -S true 2>/dev/null
+echo -n "Masukkan ulang password: "
+read -s password2
+echo
+echo "=========================================="
 
-if [ $? -ne 0 ]; then
-    echo "❌ Password root salah. Instalasi dibatalkan."
+if [ "$password1" != "$password2" ]; then
+    echo "❌ Password tidak cocok. Instalasi dibatalkan."
     exit 1
 else
-    echo "✅ Password root benar. Melanjutkan instalasi..."
+    echo "✅ Konfirmasi berhasil. Melanjutkan instalasi..."
 fi
+
 
 
 # ---- Input User ----
