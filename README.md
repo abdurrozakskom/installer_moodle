@@ -71,6 +71,7 @@ Setiap donasi sangat membantu untuk pengembangan fitur baru dan pemeliharaan scr
 ## 🔧 Cara Menggunakan
 1. **Clone repo ini**:
    ```bash
+   apt install git
    git clone https://github.com/abdurrozakskom/installer_moodle.git
    cd installer_moodle
     ```
