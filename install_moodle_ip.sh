@@ -37,12 +37,13 @@ LOGFILE="/var/log/moodle_installer.log"
 echo "Log akan disimpan di $LOGFILE"
 exec > >(tee -a $LOGFILE) 2>&1
 
-# ---- Verifikasi Password Sebelum Instalasi ----
+# ---- Verifikasi Password Sebelum Instalasi ---
+echo -e "${GREEN}==========================================${RESET}"-
 echo "=== Verifikasi Password Root ==="
 echo -n "Masukkan password root untuk melanjutkan instalasi: "
 read -s ROOT_PASS
 echo
-
+echo -e "${GREEN}==========================================${RESET}"
 # Verifikasi password root
 echo "$ROOT_PASS" | sudo -S true 2>/dev/null
 
@@ -72,28 +73,38 @@ echo -e "${GREEN}==========================================${RESET}"
 echo
 
 # ---- Update Sistem ----
+echo -e "${GREEN}==========================================${RESET}"
 echo "[1/10] Update & Upgrade..."
+echo -e "${GREEN}==========================================${RESET}"
 apt update && apt upgrade -y
 
 # ---- Paket Pendukung ----
+echo -e "${GREEN}==========================================${RESET}"
 echo "[2/10] Install paket pendukung..."
+echo -e "${GREEN}==========================================${RESET}"
 apt install -y unzip curl git software-properties-common
 
 # ---- Install LAMP Stack ----
+echo -e "${GREEN}==========================================${RESET}"
 echo "[3/10] Install Apache, MariaDB, PHP..."
+echo -e "${GREEN}==========================================${RESET}"
 apt install -y apache2 mariadb-server mariadb-client
 add-apt-repository ppa:ondrej/php -y
 apt update
 apt install -y php php-cli php-fpm php-mysql php-xmlrpc php-curl php-gd php-intl php-mbstring php-xml php-zip graphviz aspell ghostscript
 
 # ---- Tuning Apache2 ----
+echo -e "${GREEN}==========================================${RESET}"
 echo "[4/10] Tuning Apache2..."
+echo -e "${GREEN}==========================================${RESET}"
 a2enmod proxy_fcgi setenvif rewrite
 a2enconf php*-fpm
 systemctl restart apache2
 
 # ---- Tuning PHP-FPM ----
+echo -e "${GREEN}==========================================${RESET}"
 echo "[5/10] Tuning PHP-FPM..."
+echo -e "${GREEN}==========================================${RESET}"
 PHPVER=$(php -v | head -n 1 | cut -d" " -f2 | cut -d"." -f1,2)
 PHPCONF="/etc/php/$PHPVER/fpm/php.ini"
 sed -i "s/memory_limit = .*/memory_limit = 512M/" $PHPCONF
@@ -102,15 +113,18 @@ sed -i "s/post_max_size = .*/post_max_size = 100M/" $PHPCONF
 systemctl restart php$PHPVER-fpm
 
 # ---- Setup Database MariaDB ----
+echo -e "${GREEN}==========================================${RESET}"
 echo "[6/10] Setup Database..."
+echo -e "${GREEN}==========================================${RESET}"
 mysql -e "CREATE DATABASE $DBNAME DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 mysql -e "CREATE USER '$DBUSER'@'localhost' IDENTIFIED BY '$DBPASS';"
 mysql -e "GRANT ALL PRIVILEGES ON $DBNAME.* TO '$DBUSER'@'localhost';"
 mysql -e "FLUSH PRIVILEGES;"
 
 # ---- Tuning MariaDB Otomatis ----
+echo -e "${GREEN}==========================================${RESET}"
 echo "[7/10] Tuning MariaDB otomatis berdasarkan RAM..."
-
+echo -e "${GREEN}==========================================${RESET}"
 MARIADB_CONF="/etc/mysql/mariadb.conf.d/50-server.cnf"
 cp $MARIADB_CONF ${MARIADB_CONF}.bak
 
@@ -173,7 +187,9 @@ echo "MariaDB dituning otomatis: RAM=${TOTAL_RAM}MB, BufferPool=$INNODB_BUFFER, 
 
 
 # ---- Download LMS Moodle via GitHub ----
+echo -e "${GREEN}==========================================${RESET}"
 echo "[8/10] Download Moodle dari GitHub..."
+echo -e "${GREEN}==========================================${RESET}"
 if [ ! -d "$WEBROOT" ]; then
   git clone https://github.com/moodle/moodle.git $WEBROOT
 else
@@ -183,8 +199,9 @@ chown -R www-data:www-data $WEBROOT
 chmod -R 755 $WEBROOT
 
 # ---- Konfigurasi VirtualHost ----
+echo -e "${GREEN}==========================================${RESET}"
 echo "[9/10] Konfigurasi VirtualHost..."
-
+echo -e "${GREEN}==========================================${RESET}"
 WEBROOT="$WEBROOT"
 cat <<EOF > /etc/apache2/sites-available/moodle.conf
 <VirtualHost *:80>
@@ -231,14 +248,14 @@ systemctl reload apache2 || systemctl restart apache2
 
 # ---- Summary ----
 echo "[10/10] Instalasi selesai"
-echo "============================================="
+echo -e "${GREEN}==========================================${RESET}"
 echo " Moodle berhasil diinstal."
 echo " Akses di: http://$SERVER_IP "
 echo " Database: $DBNAME"
 echo " DB User : $DBUSER"
 echo " Webroot : $WEBROOT"
 echo " Log file: $LOGFILE"
-echo "============================================="
+echo -e "${GREEN}==========================================${RESET}"
 echo ""
 echo -e "${GREEN}==========================================${RESET}"
 # ---- Credit Author ----
