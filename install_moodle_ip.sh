@@ -177,17 +177,17 @@ fi
 chown -R www-data:www-data $WEBROOT
 chmod -R 755 $WEBROOT
 
-# ---- VirtualHost ----
+# ---- Konfigurasi VirtualHost ----
 echo "[9/10] Konfigurasi VirtualHost..."
-VHOST="/etc/apache2/sites-available/moodle.conf"
-cat > $VHOST <<EOF
+
+WEBROOT="/var/www/html/moodle"
+cat <<EOF > /etc/apache2/sites-available/moodle.conf
 <VirtualHost *:80>
-    ServerAdmin admin@$SERVER_IP
-    ServerName $SERVER_IP
+    ServerAdmin admin@localhost
     DocumentRoot $WEBROOT
 
     <Directory $WEBROOT>
-        Options Indexes FollowSymLinks MultiViews
+        Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
     </Directory>
@@ -197,9 +197,32 @@ cat > $VHOST <<EOF
 </VirtualHost>
 EOF
 
+# Aktifkan modul dan site
+a2enmod rewrite
 a2ensite moodle.conf
 a2dissite 000-default.conf
-systemctl reload apache2
+
+# Tes konfigurasi Apache
+echo "🧪 Mengecek konfigurasi Apache..."
+apache2ctl configtest
+if [ $? -eq 0 ]; then
+    echo "✅ Konfigurasi Apache benar."
+else
+    echo "❌ Terdapat error di konfigurasi Apache. Cek manual dengan:"
+    echo "   apache2ctl configtest"
+    exit 1
+fi
+
+# Pastikan Apache aktif
+if ! systemctl is-active --quiet apache2; then
+    echo "🔧 Apache belum aktif, mencoba menjalankan..."
+    systemctl start apache2
+fi
+
+# Reload Apache
+echo "🔄 Reload Apache service..."
+systemctl reload apache2 || systemctl restart apache2
+
 
 # ---- Summary ----
 echo "[10/10] Instalasi selesai"
