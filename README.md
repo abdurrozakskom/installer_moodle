@@ -25,7 +25,7 @@ Dikembangkan oleh **Abdur Rozak (SMKS YASMIDA Ambarawa)**.
 ---
 
 ## 📋 Persyaratan
-- Ubuntu Server 22.04 atau lebih baru.  
+- Tested Ubuntu Server 22.04 atau lebih baru.  
 - Akses root (sudo).  
 - Koneksi internet aktif.  
 - Minimal **2 GB RAM** (disarankan 4 GB untuk produksi).  
