@@ -48,7 +48,6 @@ echo
 echo -n "Masukkan ulang password: "
 read -s password2
 echo
-echo -e "${GREEN}==========================================${RESET}"
 
 if [ "$password1" != "$password2" ]; then
     echo "❌ Password tidak cocok. Instalasi dibatalkan."
@@ -56,7 +55,7 @@ if [ "$password1" != "$password2" ]; then
 else
     echo "✅ Konfirmasi berhasil. Melanjutkan instalasi..."
 fi
-
+echo -e "${GREEN}==========================================${RESET}"
 
 
 # ---- Input User ----
