@@ -91,7 +91,7 @@ Setiap donasi sangat membantu untuk pengembangan fitur baru dan pemeliharaan scr
     - Tentukan direktori webroot.
     - Masukkan nama DB, user DB, dan password DB
 
-5. **Beri izin eksekusi**:
+5. **Akses di Browser**:
    ```bash
     http://<IP-SERVER>
     ```
