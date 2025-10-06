@@ -180,7 +180,7 @@ chmod -R 755 $WEBROOT
 # ---- Konfigurasi VirtualHost ----
 echo "[9/10] Konfigurasi VirtualHost..."
 
-WEBROOT="/var/www/html/moodle"
+WEBROOT="$WEBROOT"
 cat <<EOF > /etc/apache2/sites-available/moodle.conf
 <VirtualHost *:80>
     ServerAdmin admin@localhost
