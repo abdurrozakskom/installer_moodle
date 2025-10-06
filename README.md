@@ -88,7 +88,7 @@ Setiap donasi sangat membantu untuk pengembangan fitur baru dan pemeliharaan scr
 4. **Ikuti prompt**:
     - Konfirmasi password instalasi.
     - Pilih IP otomatis atau masukkan manual.
-    - Tentukan direktori webroot.
+    - Tentukan direktori webroot **Wajib**.
     - Masukkan nama DB, user DB, dan password DB
 
 5. **Akses di Browser**:
