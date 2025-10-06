@@ -69,45 +69,263 @@ if [[ "$use_detected_ip" =~ ^([nN])$ ]]; then
   read -p "Masukkan IP Address server: " SERVER_IP
 fi
 
-read -p "Masukkan direktori web root (misalnya /var/www/moodle): " WEBROOT
-read -p "Masukkan nama database: " DBNAME
-read -p "Masukkan user database: " DBUSER
-read -s -p "Masukkan password database: " DBPASS
+# ---- Input Direktori Web Root ----
+read -p "Masukkan direktori web root (default: /var/www/moodle): " WEBROOT
+WEBROOT=${WEBROOT:-/var/www/moodle}
+
+# ---- Input Nama Database ----
+read -p "Masukkan nama database (default: dbmoodle): " DBNAME
+DBNAME=${DBNAME:-dbmoodle}
+
+# ---- Input User Database ----
+read -p "Masukkan user database (default: umoodle): " DBUSER
+DBUSER=${DBUSER:-umoodle}
+
+# ---- Input Password Database ----
+read -s -p "Masukkan password database (default: auto_generate): " DBPASS
+echo ""
+if [ -z "$DBPASS" ]; then
+  DBPASS=$(openssl rand -base64 12)
+  echo -e "${YELLOW}🔑 Password database dibuat otomatis: ${DBPASS}${RESET}"
+fi
+
 echo -e "${GREEN}==========================================${RESET}"
 echo
 
 # ---- Update Sistem ----
 echo -e "${GREEN}==========================================${RESET}"
-echo "[1/10] Update & Upgrade..."
+echo -e "${BLUE}🌀 [1/10] Update & Upgrade Sistem...${RESET}"
 echo -e "${GREEN}==========================================${RESET}"
-apt update && apt upgrade -y
+# Cek koneksi internet dulu
+if ping -c 1 google.com &> /dev/null; then
+    echo -e "${GREEN}🌐 Koneksi internet terdeteksi.${RESET}"
+else
+    echo -e "${RED}❌ Tidak ada koneksi internet. Instalasi dibatalkan.${RESET}"
+    exit 1
+fi
+
+# Jalankan update & upgrade
+echo -e "${CYAN}🔄 Memperbarui daftar paket...${RESET}"
+apt update -y >/dev/null 2>&1
+
+echo -e "${CYAN}⚙️  Meng-upgrade sistem ke versi terbaru...${RESET}"
+apt upgrade -y >/dev/null 2>&1
+
+# Bersihkan paket yang tidak diperlukan
+echo -e "${CYAN}🧹 Membersihkan paket lama...${RESET}"
+apt autoremove -y >/dev/null 2>&1
+apt autoclean -y >/dev/null 2>&1
+
+# Cek status update
+if [ $? -eq 0 ]; then
+    echo ""
+    echo -e "${GREEN}✅ Sistem berhasil diperbarui dan di-upgrade.${RESET}"
+else
+    echo ""
+    echo -e "${RED}⚠️  Gagal memperbarui sistem. Periksa sumber repository Anda.${RESET}"
+fi
+
+# Tampilkan versi OS
+OS_NAME=$(lsb_release -ds 2>/dev/null || grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '"')
+KERNEL_VER=$(uname -r)
+echo ""
+echo -e "💻 Sistem Operasi : ${YELLOW}${OS_NAME}${RESET}"
+echo -e "🧠 Kernel Versi   : ${YELLOW}${KERNEL_VER}${RESET}"
+echo -e "📦 Update Status  : ${GREEN}Tersinkron dengan repository terbaru${RESET}"
 
 # ---- Paket Pendukung ----
 echo -e "${GREEN}==========================================${RESET}"
-echo "[2/10] Install paket pendukung..."
+echo -e "${BLUE}📦 [2/10] Install Paket Pendukung...${RESET}"
 echo -e "${GREEN}==========================================${RESET}"
-apt install -y unzip curl git software-properties-common
+# Update repository
+apt update -y >/dev/null 2>&1
+
+# Daftar paket pendukung umum
+SUPPORT_PACKAGES=(
+  software-properties-common
+  lsb-release
+  ca-certificates
+  apt-transport-https
+  curl
+  wget
+  gnupg
+  zip
+  unzip
+  net-tools
+  htop
+  nano
+  git
+  ufw
+)
+
+# Install paket
+apt install -y "${SUPPORT_PACKAGES[@]}" >/dev/null 2>&1
+
+# Verifikasi hasil instalasi
+echo ""
+echo -e "${CYAN}🔍 Memverifikasi paket yang terpasang...${RESET}"
+
+SUCCESS_COUNT=0
+for pkg in "${SUPPORT_PACKAGES[@]}"; do
+  if dpkg -l | grep -qw "$pkg"; then
+    echo -e "🧩 ${pkg}   ${GREEN}✔${RESET}"
+    ((SUCCESS_COUNT++))
+  else
+    echo -e "🧩 ${pkg}   ${RED}✖${RESET}"
+  fi
+done
+
+if [ "$SUCCESS_COUNT" -eq "${#SUPPORT_PACKAGES[@]}" ]; then
+  echo ""
+  echo -e "${GREEN}✅ Semua paket pendukung berhasil diinstal.${RESET}"
+else
+  echo ""
+  echo -e "${YELLOW}⚠️  Beberapa paket gagal diinstal. Periksa koneksi internet atau repository.${RESET}"
+fi
 
 # ---- Install LAMP Stack ----
 echo -e "${GREEN}==========================================${RESET}"
-echo "[3/10] Install Apache, MariaDB, PHP..."
+echo -e "${BLUE}💽 [3/10] Install Apache2, MariaDB, dan PHP...${RESET}"
 echo -e "${GREEN}==========================================${RESET}"
-apt install -y apache2 mariadb-server mariadb-client
-add-apt-repository ppa:ondrej/php -y
-apt update
-apt install -y php php-cli php-fpm php-mysql php-xmlrpc php-curl php-gd php-intl php-mbstring php-xml php-zip graphviz aspell ghostscript
+# Install paket inti LAMP + pendukung
+apt install -y apache2 mariadb-server php php-fpm php-mysql php-xml php-gd php-curl php-zip php-intl php-soap php-mbstring php-ldap php-json php-bcmath unzip curl git ufw >/dev/null 2>&1
+
+# Verifikasi instalasi
+APACHE_VER=$(apache2 -v 2>/dev/null | grep "Server version" | awk '{print $3}')
+MARIADB_VER=$(mariadb --version 2>/dev/null | awk '{print $5}')
+PHP_VER=$(php -v 2>/dev/null | head -n 1 | awk '{print $2}')
+
+# Cek hasil instalasi
+if command -v apache2 >/dev/null && command -v mariadb >/dev/null && command -v php >/dev/null; then
+    echo -e "${GREEN}✅ Instalasi LAMP Stack berhasil.${RESET}"
+    echo ""
+    echo -e "🧩 Apache2  : ${YELLOW}${APACHE_VER}${RESET}"
+    echo -e "🧩 MariaDB  : ${YELLOW}${MARIADB_VER}${RESET}"
+    echo -e "🧩 PHP-FPM  : ${YELLOW}${PHP_VER}${RESET}"
+    echo -e "🧩 Ekstensi : ${YELLOW}xml, gd, curl, zip, intl, soap, mbstring, ldap, json, bcmath${RESET}"
+    echo -e "🧩 Tools    : ${YELLOW}git, curl, unzip, ufw${RESET}"
+else
+    echo -e "${RED}❌ Instalasi gagal. Periksa koneksi internet atau repository.${RESET}"
+    exit 1
+fi
+
+# Aktifkan layanan
+systemctl enable apache2 >/dev/null 2>&1
+systemctl enable mariadb >/dev/null 2>&1
+systemctl enable php*-fpm >/dev/null 2>&1
+
+# Mulai layanan
+systemctl restart apache2
+systemctl restart mariadb
+systemctl restart php*-fpm
+
+# Tes apakah layanan berjalan
+if systemctl is-active --quiet apache2 && systemctl is-active --quiet mariadb; then
+    echo -e "${GREEN}🚀 Semua layanan berjalan normal.${RESET}"
+else
+    echo -e "${RED}⚠️  Salah satu layanan gagal dijalankan. Cek status dengan 'systemctl status'.${RESET}"
+fi
 
 # ---- Tuning Apache2 ----
 echo -e "${GREEN}==========================================${RESET}"
-echo "[4/10] Tuning Apache2..."
+echo -e "${BLUE}🔧 [4/10] Tuning Apache2...${RESET}"
 echo -e "${GREEN}==========================================${RESET}"
+# Deteksi file konfigurasi Apache
+APACHE_CONF="/etc/apache2/apache2.conf"
+MPM_CONF="/etc/apache2/mods-available/mpm_prefork.conf"
+
+# Backup konfigurasi lama
+cp "$APACHE_CONF" "${APACHE_CONF}.bak"
+cp "$MPM_CONF" "${MPM_CONF}.bak"
+
+# Deteksi total RAM server
+TOTAL_RAM_MB=$(free -m | awk '/^Mem:/{print $2}')
+
+# Tentukan parameter berdasarkan RAM
+if [ "$TOTAL_RAM_MB" -le 1024 ]; then
+    MAX_CLIENTS=50
+    START_SERVERS=2
+    MIN_SPARE=2
+    MAX_SPARE=5
+elif [ "$TOTAL_RAM_MB" -le 2048 ]; then
+    MAX_CLIENTS=100
+    START_SERVERS=4
+    MIN_SPARE=4
+    MAX_SPARE=10
+elif [ "$TOTAL_RAM_MB" -le 4096 ]; then
+    MAX_CLIENTS=150
+    START_SERVERS=6
+    MIN_SPARE=6
+    MAX_SPARE=15
+else
+    MAX_CLIENTS=256
+    START_SERVERS=10
+    MIN_SPARE=10
+    MAX_SPARE=25
+fi
+
+# Terapkan tuning MPM Prefork (untuk kompatibilitas dengan PHP-FPM)
+sed -i "s/^StartServers.*/StartServers ${START_SERVERS}/" "$MPM_CONF"
+sed -i "s/^MinSpareServers.*/MinSpareServers ${MIN_SPARE}/" "$MPM_CONF"
+sed -i "s/^MaxSpareServers.*/MaxSpareServers ${MAX_SPARE}/" "$MPM_CONF"
+sed -i "s/^MaxRequestWorkers.*/MaxRequestWorkers ${MAX_CLIENTS}/" "$MPM_CONF"
+sed -i "s/^MaxConnectionsPerChild.*/MaxConnectionsPerChild 1000/" "$MPM_CONF"
+
+# Tambahkan optimasi umum ke apache2.conf
+cat <<EOF >> "$APACHE_CONF"
+
+# ==============================
+# 💨 Optimasi Apache2 Otomatis
+# ==============================
+KeepAlive On
+MaxKeepAliveRequests 100
+KeepAliveTimeout 3
+
+ServerTokens Prod
+ServerSignature Off
+HostnameLookups Off
+Timeout 60
+
+# Kompresi Gzip
+<IfModule mod_deflate.c>
+ AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css application/javascript application/json
+</IfModule>
+
+# Cache dasar
+<IfModule mod_expires.c>
+ ExpiresActive On
+ ExpiresDefault "access plus 1 month"
+</IfModule>
+EOF
+
+# Aktifkan modul penting
+a2enmod rewrite deflate expires headers env dir mime > /dev/null 2>&1
+
+# Restart Apache
+if systemctl restart apache2; then
+    echo -e "${GREEN}✅ Apache2 berhasil dituning dan direstart.${RESET}"
+    echo ""
+    echo -e "💾 Total RAM Server   : ${YELLOW}${TOTAL_RAM_MB} MB${RESET}"
+    echo -e "⚙️  StartServers       : ${YELLOW}${START_SERVERS}${RESET}"
+    echo -e "⚙️  MinSpareServers    : ${YELLOW}${MIN_SPARE}${RESET}"
+    echo -e "⚙️  MaxSpareServers    : ${YELLOW}${MAX_SPARE}${RESET}"
+    echo -e "⚙️  MaxRequestWorkers  : ${YELLOW}${MAX_CLIENTS}${RESET}"
+    echo -e "⏱️  KeepAliveTimeout   : ${YELLOW}3 detik${RESET}"
+    echo -e "🔒 ServerTokens        : ${YELLOW}Prod${RESET}"
+    echo -e "💨 Modul Aktif         : ${YELLOW}rewrite, deflate, expires, headers${RESET}"
+else
+    echo -e "${RED}❌ Gagal me-restart Apache2. Periksa konfigurasi Anda.${RESET}"
+    echo -e "${YELLOW}Gunakan perintah:${RESET} journalctl -xeu apache2.service"
+    exit 1
+fi
+
 a2enmod proxy_fcgi setenvif rewrite
 a2enconf php*-fpm
 systemctl restart apache2
 
 # ---- Tuning PHP-FPM ----
 echo -e "${GREEN}==========================================${RESET}"
-echo "[5/10] Tuning PHP-FPM..."
+echo -e "${BLUE}⚙️  [5/10] Tuning PHP-FPM...${RESET}"
 echo -e "${GREEN}==========================================${RESET}"
 PHPVER=$(php -v | head -n 1 | cut -d" " -f2 | cut -d"." -f1,2)
 PHPCONF="/etc/php/$PHPVER/fpm/php.ini"
@@ -118,7 +336,7 @@ systemctl restart php$PHPVER-fpm
 
 # ---- Setup Database MariaDB ----
 echo -e "${GREEN}==========================================${RESET}"
-echo "[6/10] Setup Database..."
+echo -e "${BLUE}🗄️  [6/10] Setup Database MariaDB...${RESET}"
 echo -e "${GREEN}==========================================${RESET}"
 mysql -e "CREATE DATABASE $DBNAME DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 mysql -e "CREATE USER '$DBUSER'@'localhost' IDENTIFIED BY '$DBPASS';"
@@ -127,7 +345,7 @@ mysql -e "FLUSH PRIVILEGES;"
 
 # ---- Tuning MariaDB Otomatis ----
 echo -e "${GREEN}==========================================${RESET}"
-echo "[7/10] Tuning MariaDB otomatis berdasarkan RAM..."
+echo -e "${BLUE}🧠 [7/10] Tuning MariaDB otomatis berdasarkan RAM...${RESET}"
 echo -e "${GREEN}==========================================${RESET}"
 MARIADB_CONF="/etc/mysql/mariadb.conf.d/50-server.cnf"
 cp $MARIADB_CONF ${MARIADB_CONF}.bak
@@ -135,64 +353,49 @@ cp $MARIADB_CONF ${MARIADB_CONF}.bak
 # Deteksi RAM dalam MB
 TOTAL_RAM=$(free -m | awk '/^Mem:/{print $2}')
 
-# Default value
-INNODB_BUFFER="256M"
-INNODB_LOG="64M"
-MAX_CONN="150"
-
-if [ $TOTAL_RAM -ge 16000 ]; then
-  # Server >=16GB RAM
-  INNODB_BUFFER="8G"
-  INNODB_LOG="1G"
-  MAX_CONN="500"
-elif [ $TOTAL_RAM -ge 8000 ]; then
-  # Server >=8GB RAM
-  INNODB_BUFFER="4G"
-  INNODB_LOG="512M"
-  MAX_CONN="400"
-elif [ $TOTAL_RAM -ge 4000 ]; then
-  # Server >=4GB RAM
-  INNODB_BUFFER="2G"
-  INNODB_LOG="256M"
-  MAX_CONN="300"
-elif [ $TOTAL_RAM -ge 2000 ]; then
-  # Server >=2GB RAM
-  INNODB_BUFFER="1G"
-  INNODB_LOG="128M"
-  MAX_CONN="200"
+# Tentukan nilai konfigurasi berdasarkan kapasitas RAM
+if [ "$TOTAL_RAM" -le 1024 ]; then
+    INNODB_BUFFER_POOL_SIZE="128M"
+    QUERY_CACHE_SIZE="16M"
+    MAX_CONNECTIONS="50"
+elif [ "$TOTAL_RAM" -le 2048 ]; then
+    INNODB_BUFFER_POOL_SIZE="256M"
+    QUERY_CACHE_SIZE="32M"
+    MAX_CONNECTIONS="100"
+elif [ "$TOTAL_RAM" -le 4096 ]; then
+    INNODB_BUFFER_POOL_SIZE="512M"
+    QUERY_CACHE_SIZE="64M"
+    MAX_CONNECTIONS="200"
 else
-  # Server kecil <2GB
-  INNODB_BUFFER="256M"
-  INNODB_LOG="64M"
-  MAX_CONN="100"
+    INNODB_BUFFER_POOL_SIZE="1G"
+    QUERY_CACHE_SIZE="128M"
+    MAX_CONNECTIONS="400"
 fi
 
-cat >> $MARIADB_CONF <<EOF
+# Backup konfigurasi MariaDB lama
+MARIADB_CONF="/etc/mysql/mariadb.conf.d/50-server.cnf"
+cp $MARIADB_CONF ${MARIADB_CONF}.bak
 
-# =====================================
-# Custom MariaDB Optimized for Moodle
-# Auto-generated by install_moodle_lamp.sh
-# Detected RAM: ${TOTAL_RAM}MB
-# =====================================
-[mysqld]
-innodb_buffer_pool_size = $INNODB_BUFFER
-innodb_log_file_size    = $INNODB_LOG
-innodb_file_per_table   = 1
-innodb_flush_log_at_trx_commit = 2
-max_connections         = $MAX_CONN
-query_cache_type        = 1
-query_cache_size        = 64M
-tmp_table_size          = 64M
-max_heap_table_size     = 64M
-EOF
+# Terapkan tuning otomatis
+sed -i "s/^innodb_buffer_pool_size.*/innodb_buffer_pool_size = $INNODB_BUFFER_POOL_SIZE/" $MARIADB_CONF 2>/dev/null || echo "innodb_buffer_pool_size = $INNODB_BUFFER_POOL_SIZE" >> $MARIADB_CONF
+sed -i "s/^query_cache_size.*/query_cache_size = $QUERY_CACHE_SIZE/" $MARIADB_CONF 2>/dev/null || echo "query_cache_size = $QUERY_CACHE_SIZE" >> $MARIADB_CONF
+sed -i "s/^max_connections.*/max_connections = $MAX_CONNECTIONS/" $MARIADB_CONF 2>/dev/null || echo "max_connections = $MAX_CONNECTIONS" >> $MARIADB_CONF
 
+# Restart MariaDB agar perubahan diterapkan
 systemctl restart mariadb
-echo "MariaDB dituning otomatis: RAM=${TOTAL_RAM}MB, BufferPool=$INNODB_BUFFER, MaxConn=$MAX_CONN"
 
+# ✅ Tampilkan hasil tuning
+echo -e "${GREEN}✅ Tuning MariaDB selesai berdasarkan spesifikasi sistem${RESET}"
+echo -e "${CYAN}-------------------------------------------${RESET}"
+echo -e "🧩 Total RAM Terdeteksi : ${YELLOW}${TOTAL_RAM} MB${RESET}"
+echo -e "🧩 innodb_buffer_pool_size : ${YELLOW}${INNODB_BUFFER_POOL_SIZE}${RESET}"
+echo -e "🧩 query_cache_size        : ${YELLOW}${QUERY_CACHE_SIZE}${RESET}"
+echo -e "🧩 max_connections         : ${YELLOW}${MAX_CONNECTIONS}${RESET}"
+echo -e "${CYAN}-------------------------------------------${RESET}"
 
 # ---- Download LMS Moodle via GitHub ----
 echo -e "${GREEN}==========================================${RESET}"
-echo "[8/10] Download Moodle dari GitHub..."
+echo -e "${BLUE}⬇️  [8/10] Download Moodle dari GitHub...${RESET}"
 echo -e "${GREEN}==========================================${RESET}"
 if [ ! -d "$WEBROOT" ]; then
   git clone https://github.com/moodle/moodle.git $WEBROOT
@@ -204,50 +407,62 @@ chmod -R 755 $WEBROOT
 
 # ---- Konfigurasi VirtualHost ----
 echo -e "${GREEN}==========================================${RESET}"
-echo "[9/10] Konfigurasi VirtualHost..."
+echo -e "${BLUE}🌐 [9/10] Konfigurasi VirtualHost...${RESET}"
 echo -e "${GREEN}==========================================${RESET}"
 WEBROOT="$WEBROOT"
-cat <<EOF > /etc/apache2/sites-available/moodle.conf
-<VirtualHost *:80>
-    ServerAdmin admin@localhost
-    DocumentRoot $WEBROOT
+# Pastikan Apache aktif
+if ! systemctl is-active --quiet apache2; then
+    systemctl start apache2
+fi
 
-    <Directory $WEBROOT>
+# Deteksi versi PHP otomatis
+PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
+
+# File konfigurasi VirtualHost
+VHOST_CONF="/etc/apache2/sites-available/moodle.conf"
+
+# Buat konfigurasi VirtualHost dengan PHP-FPM
+cat > $VHOST_CONF <<EOF
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    ServerName ${SERVER_IP}
+    DocumentRoot ${WEBROOT}
+
+    <Directory ${WEBROOT}>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
     </Directory>
+
+    <FilesMatch \.php$>
+        SetHandler "proxy:unix:/run/php/php${PHP_VERSION}-fpm.sock|fcgi://localhost/"
+    </FilesMatch>
 
     ErrorLog \${APACHE_LOG_DIR}/moodle_error.log
     CustomLog \${APACHE_LOG_DIR}/moodle_access.log combined
 </VirtualHost>
 EOF
 
-# Aktifkan modul dan site
-a2enmod rewrite
-a2ensite moodle.conf
-a2dissite 000-default.conf
+# Nonaktifkan default site & aktifkan Moodle
+a2dissite 000-default.conf >/dev/null 2>&1
+a2ensite moodle.conf >/dev/null 2>&1
 
-# Tes konfigurasi Apache
-echo "🧪 Mengecek konfigurasi Apache..."
-apache2ctl configtest
-if [ $? -eq 0 ]; then
-    echo "✅ Konfigurasi Apache benar."
-else
-    echo "❌ Terdapat error di konfigurasi Apache. Cek manual dengan:"
-    echo "   apache2ctl configtest"
-    exit 1
-fi
+# Aktifkan modul yang dibutuhkan Moodle
+a2enmod proxy_fcgi setenvif >/dev/null 2>&1
+a2enmod rewrite >/dev/null 2>&1
+a2enconf php${PHP_VERSION}-fpm >/dev/null 2>&1
 
-# Pastikan Apache aktif
-if ! systemctl is-active --quiet apache2; then
-    echo "🔧 Apache belum aktif, mencoba menjalankan..."
-    systemctl start apache2
-fi
-
-# Reload Apache
-echo "🔄 Reload Apache service..."
+# Restart PHP-FPM & reload Apache
+systemctl restart php${PHP_VERSION}-fpm
 systemctl reload apache2 || systemctl restart apache2
+
+# Verifikasi status Apache & PHP-FPM
+if systemctl is-active --quiet apache2 && systemctl is-active --quiet php${PHP_VERSION}-fpm; then
+    echo -e "${GREEN}✅ Konfigurasi VirtualHost Moodle dengan PHP-FPM berhasil diterapkan.${RESET}"
+else
+    echo -e "${RED}❌ Gagal memuat Apache2 atau PHP-FPM.${RESET}"
+    echo -e "   Gunakan perintah: ${YELLOW}systemctl status apache2 php${PHP_VERSION}-fpm${RESET}"
+fi
 
 
 # ---- Summary ----
@@ -267,6 +482,11 @@ echo -e "🗄️  Database : ${YELLOW}$DBNAME${RESET}"
 echo -e "👤 DB User  : ${YELLOW}$DBUSER${RESET}"
 echo -e "📂 Webroot  : ${YELLOW}$WEBROOT${RESET}"
 echo -e "🪵 Log File : ${YELLOW}$LOGFILE${RESET}"
+echo -e "📂 Web Root      : ${YELLOW}$WEBROOT${RESET}"
+echo -e "⚙️  VirtualHost  : ${YELLOW}$VHOST_CONF${RESET}"
+echo -e "🧩 PHP-FPM Sock  : ${YELLOW}/run/php/php${PHP_VERSION}-fpm.sock${RESET}"
+echo -e "🪵 Error Log     : ${YELLOW}/var/log/apache2/moodle_error.log${RESET}"
+echo -e "🪵 Access Log    : ${YELLOW}/var/log/apache2/moodle_access.log${RESET}"
 
 echo ""
 echo -e "${GREEN}==========================================${RESET}"
