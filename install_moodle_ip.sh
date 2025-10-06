@@ -34,13 +34,13 @@ fi
 
 # ---- Logging ----
 LOGFILE="/var/log/moodle_installer.log"
-echo "=========================================="
+echo -e "${GREEN}==========================================${RESET}"
 echo "Log akan disimpan di $LOGFILE"
-echo "=========================================="
+echo -e "${GREEN}==========================================${RESET}"
 exec > >(tee -a $LOGFILE) 2>&1
 
 # ---- Konfirmasi Sebelum Instalasi ----
-echo "=========================================="
+echo -e "${GREEN}==========================================${RESET}"
 echo "=== Verifikasi Sebelum Instalasi ==="
 echo -n "Masukkan password untuk konfirmasi (bebas): "
 read -s password1
@@ -48,7 +48,7 @@ echo
 echo -n "Masukkan ulang password: "
 read -s password2
 echo
-echo "=========================================="
+echo -e "${GREEN}==========================================${RESET}"
 
 if [ "$password1" != "$password2" ]; then
     echo "❌ Password tidak cocok. Instalasi dibatalkan."
