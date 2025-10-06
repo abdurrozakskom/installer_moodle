@@ -85,12 +85,10 @@ Setiap donasi sangat membantu untuk pengembangan fitur baru dan pemeliharaan scr
 4. **Beri izin eksekusi**:
    ```bash
     chmod +x install_moodle.sh
-    chmod +x install_moodle_ip.sh
     ```
 5. **Jalankan script**:
    ```bash
-    sudo ./install_moodle.sh
-    sudo ./install_moodle_ip.sh
+    ./install_moodle.sh
     ```
 6. **Ikuti prompt**:
     - Konfirmasi password instalasi.
